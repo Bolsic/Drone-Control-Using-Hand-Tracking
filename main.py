@@ -13,21 +13,67 @@ def normalise_angle(angle):
         return 1
     return angle / np.pi
 
+def draw_arrows(window, arrows):
+    for arrow in arrows:
+        arrow.draw()
+
 # Make Arrow class
 class Arrow:
-    def __init__(self, direction, color, key, threshold):
-        self.direction = direction
+    def __init__(self, coordinates, color, key, threshold):
+        self.coordinates = coordinates
         self.color = color
         self.key = key
         self.threshold = threshold
 
     def draw(self):
-        pygame.draw.polygon(window, self.color, self.direction)
+        pygame.draw.polygon(window, self.color, self.coordinates)
     
     def activate(self, signal):
         # if the signal and threshold have the same sign and 
         if abs(signal) > abs(self.threshold) and signal*self.threshold > 0:
             opacity = int(255*abs(signal))
+            if opacity > 255: opacity = 255
+            if opacity < 0: opacity = 0
+            self.color = (opacity, opacity, 0)
+        else: 
+            self.color = (0, 0, 0)
+
+# make subclass UpArrow>
+class UpArrow(Arrow):
+    def __init__(self, coordinates, color, key, threshold):
+        super().__init__(coordinates, color, key, threshold)
+        self.step = 0.01
+
+    def calibrate(self, signal):
+        print("Previous threshold", self.threshold)
+        self.threshold = signal + self.step
+        print("New threshold", self.threshold)
+    
+    def activate(self, signal):
+        if signal > self.threshold:
+            opacity = abs(int(255*signal)) * 5
+            if opacity > 255: opacity = 255
+            if opacity < 0: opacity = 0
+            self.color = (opacity, opacity, 0)
+        else: 
+            self.color = (0, 0, 0)
+
+# make subclass DownArrow
+class DownArrow(Arrow):
+    def __init__(self, coordinates, color, key, threshold):
+        super().__init__(coordinates, color, key, threshold)
+        self.step = 0.01
+
+    def calibrate(self, signal):
+        print("Previous threshold", self.threshold)
+        self.threshold = signal - self.step
+        print("New threshold", self.threshold)
+    
+    def activate(self, signal):
+        if signal < self.threshold:
+            opacity = abs(int(255*signal))
+            if opacity > 255: opacity = 255
+            if opacity < 0: opacity = 0
             self.color = (opacity, opacity, 0)
         else: 
             self.color = (0, 0, 0)
@@ -44,7 +90,8 @@ FB_angle = 0
 forward_angle_threshold = 0.05
 back_angle_threshold = -0.05
 hand_height = 0
-hand_height_threshold = 0.2
+up_height_threshold = 0.005
+down_height_threshold = -0.005
 
 pygame.init()
 win_width = 600
@@ -52,6 +99,7 @@ win_height = 600
 window = pygame.display.set_mode((win_width, win_height))
 pygame.display.set_caption("Arrows")
 clock = pygame.time.Clock()
+
 # Make the same arows but half the size
 forward_arrow = Arrow([(win_width//2, win_height//2), (win_width//2-60, win_height//2-100), (win_width//2+60, win_height//2-100)],
                        light_gray, pygame.K_UP, forward_angle_threshold)
@@ -61,7 +109,12 @@ left_arrow = Arrow([(win_width//2, win_height//2), (win_width//2-100, win_height
                     light_gray, pygame.K_LEFT, left_angle_threshold)
 right_arrow = Arrow([(win_width//2, win_height//2), (win_width//2+100, win_height//2-60), (win_width//2+100, win_height//2+60)],
                      light_gray, pygame.K_RIGHT, right_angle_threshold)
+up_arrow = UpArrow([(win_width//5-40, win_height//5-100), (win_width//5-100, win_height//5), (win_width//5+20, win_height//5)],
+                 light_gray, pygame.K_UP, up_height_threshold)
+down_arrow = DownArrow([(win_width//5-40, win_height//5+120), (win_width//5-100, win_height//5+20), (win_width//5+20, win_height//5+20)],
+                   light_gray, pygame.K_DOWN, down_height_threshold)
 
+arrows = [forward_arrow, back_arrow, left_arrow, right_arrow, up_arrow, down_arrow]
 
 # Initialize Mediapipe Hands
 mp_hands = mp.solutions.hands
@@ -85,8 +138,6 @@ while cap.isOpened():
     # Process the image and detect hands
     results = hands.process(image_rgb)
 
-    # Draw hand annotations on the image
-
     hand_height = 0
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
@@ -103,7 +154,8 @@ while cap.isOpened():
             FB_angle = np.arctan(FB_height/FB_width)
 
             for landmark in hand_landmarks.landmark:
-                hand_height = landmark.z
+                hand_height += landmark.z
+            hand_height /= len(hand_landmarks.landmark)
             break
     else:
         RL_angle = 0
@@ -121,23 +173,33 @@ while cap.isOpened():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == pygame.KEYDOWN:
+            print("NESTO")
+            if event.key == pygame.K_SPACE:
+                arrows[4].calibrate(hand_height) 
+                arrows[5].calibrate(hand_height)
+            if event.key == pygame.K_q:
+                pygame.quit()
+                sys.exit()
+
 
     window.fill(dark_gray)
 
     # Normalise the angles
     RL_angle = normalise_angle(RL_angle)
     FB_angle = normalise_angle(FB_angle)
-    print(RL_angle, FB_angle)
 
-    forward_arrow.activate(FB_angle)
-    back_arrow.activate(FB_angle)
-    left_arrow.activate(RL_angle)
-    right_arrow.activate(RL_angle)
+    # Activate the arrows
+    arrows[0].activate(FB_angle)
+    arrows[1].activate(FB_angle)
+    arrows[2].activate(RL_angle)
+    arrows[3].activate(RL_angle)
+    arrows[4].activate(hand_height)
+    arrows[5].activate(hand_height)
 
-    forward_arrow.draw()
-    back_arrow.draw()
-    left_arrow.draw()
-    right_arrow.draw()
+    print(hand_height)
+
+    draw_arrows(window, arrows)
     pygame.display.update()
 
 cap.release()

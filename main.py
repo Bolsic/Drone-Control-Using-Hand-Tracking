@@ -46,17 +46,19 @@ class UpArrow(Arrow):
 
     def calibrate(self, signal):
         print("Previous threshold", self.threshold)
-        self.threshold = signal + self.step
+        self.threshold = signal - self.step
         print("New threshold", self.threshold)
     
     def activate(self, signal):
-        if signal > self.threshold:
-            opacity = abs(int(255*signal)) * 5
+        # Lower value means its farther away
+        if abs(signal) < abs(self.threshold) and signal*self.threshold > 0:
+            opacity = abs(int(255*abs(signal - self.threshold))) * 10
             if opacity > 255: opacity = 255
             if opacity < 0: opacity = 0
             self.color = (opacity, opacity, 0)
         else: 
             self.color = (0, 0, 0)
+        print(abs(signal - self.threshold))
 
 # make subclass DownArrow
 class DownArrow(Arrow):
@@ -66,12 +68,13 @@ class DownArrow(Arrow):
 
     def calibrate(self, signal):
         print("Previous threshold", self.threshold)
-        self.threshold = signal - self.step
+        self.threshold = signal + self.step
         print("New threshold", self.threshold)
     
     def activate(self, signal):
-        if signal < self.threshold:
-            opacity = abs(int(255*signal))
+        # Lower value means its farther away
+        if abs(signal) > abs(self.threshold) and signal*self.threshold > 0:
+            opacity = abs(int(255*abs(signal - self.threshold))) * 5
             if opacity > 255: opacity = 255
             if opacity < 0: opacity = 0
             self.color = (opacity, opacity, 0)
@@ -92,6 +95,8 @@ back_angle_threshold = -0.05
 hand_height = 0
 up_height_threshold = 0.005
 down_height_threshold = -0.005
+
+previous_hand_heights = [0, 0, 0, 0, 0]
 
 pygame.init()
 win_width = 600
@@ -156,6 +161,7 @@ while cap.isOpened():
             for landmark in hand_landmarks.landmark:
                 hand_height += landmark.z
             hand_height /= len(hand_landmarks.landmark)
+            hand_height = -1 * hand_height
             break
     else:
         RL_angle = 0
@@ -194,10 +200,17 @@ while cap.isOpened():
     arrows[1].activate(FB_angle)
     arrows[2].activate(RL_angle)
     arrows[3].activate(RL_angle)
-    arrows[4].activate(hand_height)
-    arrows[5].activate(hand_height)
 
-    print(hand_height)
+    previous_hand_heights.pop(0)
+    previous_hand_heights.append(hand_height)
+    #calculate the average hand height
+    average_hand_height = sum(previous_hand_heights) / len(previous_hand_heights)
+    #print(average_hand_height)
+
+    arrows[4].activate(average_hand_height)
+    arrows[5].activate(average_hand_height)
+
+    #print(hand_height)
 
     draw_arrows(window, arrows)
     pygame.display.update()

@@ -9,6 +9,7 @@ from Arrows import Arrows
 from Arrows import Arrow
 
 def normalise_angle(angle):
+    # Normalise the values between -pi and pi to -1 and 1
     if angle < -np.pi:
         return -1
     elif angle > np.pi:
@@ -16,8 +17,8 @@ def normalise_angle(angle):
     return angle / (np.pi /2)
 
 def normalise_height(height):
-    # Normalise the values between 0.15 and 0.02 to -1 and 1
-    normalized_value = ((height - 0.01) / (0.15 - 0.01)) * (1 - (-1)) + (-1)
+    # Normalise the values between 0.25 and 0.05 to -1 and 1
+    normalized_value = ((height - 0.05) / (0.25 - 0.0)) * (1 - (-1)) + (-1)
     # Flip the value so that the higher the hand the higher the value
     normalized_value = -1 * normalized_value
     # Make sure the value is between -1 and 1
@@ -32,8 +33,9 @@ dark_gray = (50, 50, 50)
 light_gray = (200, 200, 200)
 yellow = (255, 255, 0)
 
-horizontal_angle_threshold_step = 0.05
-height_threshold_step = 0.005
+# Thresholds
+horizontal_angle_threshold_step = 0.1
+height_threshold_step = 0.1
 
 RL_angle = 0
 FB_angle = 0
@@ -94,20 +96,21 @@ while cap.isOpened():
             mp_draw.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             
             # Calculate the angle between the tumb and pinky
-            RL_height = hand_landmarks.landmark[4].z - hand_landmarks.landmark[20].z
-            RL_width = hand_landmarks.landmark[4].x - hand_landmarks.landmark[20].x
+            RL_height = hand_landmarks.landmark[5].z - hand_landmarks.landmark[17].z
+            RL_width = hand_landmarks.landmark[5].x - hand_landmarks.landmark[17].x
             RL_angle = -np.arctan(RL_height/RL_width)
 
             # Calculate the angle between the middle finger and wrist
-            FB_height = hand_landmarks.landmark[12].z - hand_landmarks.landmark[0].z
-            FB_width = hand_landmarks.landmark[12].y - hand_landmarks.landmark[0].y
+            FB_height = hand_landmarks.landmark[9].z - hand_landmarks.landmark[0].z
+            FB_width = hand_landmarks.landmark[9].y - hand_landmarks.landmark[0].y
             FB_angle = np.arctan(FB_height/FB_width)
 
-            for idx in hand_height_keypoint_indices:
-                hand_height += hand_landmarks.landmark[idx].z
 
-            hand_height /= len(hand_height_keypoint_indices)
-            hand_height = -1 * hand_height
+            # Calculate the distance between points 5 and 17
+            x = hand_landmarks.landmark[5].x - hand_landmarks.landmark[17].x
+            y = hand_landmarks.landmark[5].y - hand_landmarks.landmark[17].y
+            hand_height = np.sqrt(x**2 + y**2)
+            
             break
     else:
         RL_angle = 0

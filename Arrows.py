@@ -1,10 +1,9 @@
 import pygame
 
 class Arrow:
-    def __init__(self, coordinates, color, key, threshold_step):
+    def __init__(self, coordinates, threshold_step, color=(200, 200, 200)):
         self.coordinates = coordinates
         self.color = color
-        self.key = key
         self.threshold = threshold_step
         self.threshold_step = threshold_step
         self.activated = False
@@ -86,3 +85,4 @@ class Arrows:
         print("Right: ", self.arrows[3].threshold)
         print("Up: ", self.arrows[4].threshold)
         print("Down: ", self.arrows[5].threshold)
+        

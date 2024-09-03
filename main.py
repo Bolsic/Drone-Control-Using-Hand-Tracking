@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import pygame
 import numpy as np
 import sys
+from Arrows import Arrows
+from Arrows import Arrow
 
 def normalise_angle(angle):
     if angle < -np.pi:
@@ -24,77 +26,6 @@ def normalise_height(height):
     elif normalized_value < -1:
         return -1
     return normalized_value
-
-# Make Arrow class
-class Arrow:
-    def __init__(self, coordinates, color, key, threshold_step):
-        self.coordinates = coordinates
-        self.color = color
-        self.key = key
-        self.threshold = threshold_step
-        self.threshold_step = threshold_step
-
-    def draw(self):
-        pygame.draw.polygon(window, self.color, self.coordinates)
-
-    def calibrate(self, signal):
-        self.threshold = signal + self.threshold_step
-    
-    def activate(self, signal):
-        opacity = int(abs(signal-self.threshold) * 255)
-        if opacity > 255: opacity = 255
-        if opacity < 0: opacity = 0
-        self.color = (opacity, opacity, 0)
-
-    def recive_signal(self, signal):
-        # if the signal and threshold have the same sign and 
-        if self.threshold_step > 0 and signal > self.threshold:
-            print("Activate", self.threshold_step, signal, self.threshold)
-            self.activate(signal)
-        elif self.threshold_step < 0 and signal < self.threshold:
-            print("Activate", self.threshold_step, signal, self.threshold)
-            self.activate(signal)
-        else: 
-            self.color = (0, 0, 0)
-
-class Arrows:
-    # This class will be used to group all the arrows
-    # forvard, back, left, right, up, down
-    def __init__(self, arrows):
-        self.arrows = arrows
-    
-    def draw(self):
-        for arrow in self.arrows:
-            arrow.draw()
-
-    def calibrate_horizontal_arrows(self, signal):
-        # Recive a signal composed of 3 numbers: FB_angle, RL_angle, hand_height
-        # and calibrate all the arrows
-        for i in range(4):
-            self.arrows[i].calibrate(signal[i//2])
-        
-    def calibrate_vertical_arrows(self, signal):
-        # Recive a signal composed of 3 numbers: FB_angle, RL_angle, hand_height
-        # and calibrate all the arrows
-        for i in range(4,6):
-            self.arrows[i].calibrate(signal[i//2])
-    
-    def recive_signal(self, signal):
-        # Recive a signal composed of 3 numbers: FB_angle, RL_angle, hand_height
-        # and activate all the arrows
-        for i in range(6):
-            self.arrows[i].recive_signal(signal[i//2])
-        
-    def print_thresholds(self):
-        print("Thresholds:")
-        print("Forward: ", self.arrows[0].threshold)
-        print("Backward: ", self.arrows[1].threshold)
-        print("Left: ", self.arrows[2].threshold)
-        print("Right: ", self.arrows[3].threshold)
-        print("Up: ", self.arrows[4].threshold)
-        print("Down: ", self.arrows[5].threshold)
-
-
 
 # colors
 dark_gray = (50, 50, 50)
@@ -224,7 +155,7 @@ while cap.isOpened():
 
     # Draw the arrows
     window.fill(dark_gray)
-    arrows.draw()
+    arrows.draw(window)
     pygame.display.update()
 
 cap.release()

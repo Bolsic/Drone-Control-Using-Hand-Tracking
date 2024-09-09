@@ -76,6 +76,13 @@ class Arrows:
         else:
             self.arrows[4].deactivate()
             self.arrows[5].deactivate()
+    
+    def activated_axis(self):
+        # Return the activated axis
+        activated_list = []
+        for i in range(6):
+            activated_list.append(self.arrows[i].activated)
+        return activated_list
 
     def print_thresholds(self):
         print("Thresholds:")

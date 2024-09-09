@@ -16,7 +16,8 @@ me.up_down_velocity = 0
 me.yaw_velocity = 0
 me.speed = 0
 
-speed = 30
+speed = 1
+70
 rotation_speed = 40
 
 print("Current Battery: ", me.get_battery())
@@ -34,8 +35,6 @@ rotation_velocity = 0
 
 run = True
 while run: 
-    clock.tick(10)
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -63,9 +62,9 @@ while run:
     if keys[pygame.K_DOWN]:
         forward_backward_velocity = -speed
     if keys[pygame.K_RIGHT]:
-        left_right_velocity = -speed
-    if keys[pygame.K_LEFT]:
         left_right_velocity = speed
+    if keys[pygame.K_LEFT]:
+        left_right_velocity = -speed
     if keys[pygame.K_a]:
         rotation_velocity = rotation_speed
     if keys[pygame.K_d]:
@@ -74,7 +73,7 @@ while run:
         up_down_velocity = speed
     if keys[pygame.K_s]:
         up_down_velocity = -speed
-
+    print(left_right_velocity, forward_backward_velocity, up_down_velocity, rotation_velocity)
     me.send_rc_control(left_right_velocity, forward_backward_velocity, up_down_velocity, rotation_velocity)
     
 me.land()

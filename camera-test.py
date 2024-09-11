@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 import mediapipe as mp
 
+'''This pogram uses the mediapipe library to detect hands and draw landmarks on the hands'''
+
 cap=cv2.VideoCapture(0)
 if not (cap.isOpened()):
     print("Could not open video device")

@@ -4,7 +4,7 @@ from Arrows import Arrows
 from Arrows import Arrow
 
 def normalize_angle(angle):
-    # normalize the values between -pi and pi to -1 and 1
+    # Normalize the values between -pi and pi to -1 and 1
     if angle < -np.pi:
         return -1
     elif angle > np.pi:
@@ -12,7 +12,7 @@ def normalize_angle(angle):
     return angle / (np.pi /2)
 
 def normalize_height(height):
-    # normalize the values between 0.25 and 0.05 to -1 and 1
+    # Normalize the values between 0.25 and 0.05 to -1 and 1
     normalized_value = ((height - 0.05) / (0.25 - 0.0)) * (1 - (-1)) + (-1)
     # Flip the value so that the higher the hand the higher the value
     normalized_value = -1 * normalized_value
@@ -77,12 +77,12 @@ class Control:
                 # Calculate the angle between the tumb and pinky
                 self.RL_height = hand_landmarks.landmark[5].z - hand_landmarks.landmark[17].z
                 self.RL_width = math.sqrt((hand_landmarks.landmark[5].x - hand_landmarks.landmark[17].x)**2 + (hand_landmarks.landmark[5].y - hand_landmarks.landmark[17].y)**2)
-                self.RL_angle = -np.arctan(self.RL_height / self.RL_width)
+                self.RL_angle = np.arctan(self.RL_height / self.RL_width)
 
                 # Calculate the angle between the middle finger and wrist
                 self.FB_height = hand_landmarks.landmark[9].z - hand_landmarks.landmark[0].z
                 self.FB_width = math.sqrt((hand_landmarks.landmark[9].y - hand_landmarks.landmark[0].y)**2 + (hand_landmarks.landmark[9].x - hand_landmarks.landmark[0].x)**2)
-                self.FB_angle = np.arctan(self.FB_height / self.FB_width)
+                self.FB_angle = -np.arctan(self.FB_height / self.FB_width)
 
 
                 # Calculate the distance between points 5 and 17
@@ -111,8 +111,6 @@ class Control:
             self.drone_signal[2] = 0
 
         self.drone_signal *= self.drone_top_speed
-
-        #self.print_signals()
 
     def send_drone_signal(self):
         self.drone.send_rc_control(int(self.drone_signal[1]),

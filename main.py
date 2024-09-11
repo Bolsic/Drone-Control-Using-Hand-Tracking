@@ -30,23 +30,22 @@ mp_draw = mp.solutions.drawing_utils
 cap = cv2.VideoCapture(0)
 
 #CONNECT TO DRONE
-# my_drone = Tello()
-# my_drone.connect()
-# my_drone.for_back_velocity = 0
-# my_drone.left_right_velocity = 0
-# my_drone.up_down_velocity = 0
-# my_drone.yaw_velocity = 0
-# my_drone.speed = 0
+my_drone = Tello()
+my_drone.connect()
+my_drone.for_back_velocity = 0
+my_drone.left_right_velocity = 0
+my_drone.up_down_velocity = 0
+my_drone.yaw_velocity = 0
+my_drone.speed = 0
 
-# print("######################")
-# print("Drone Battery: ", my_drone.get_battery())
-# print("######################")
+print("######################")
+print("Drone Battery: ", my_drone.get_battery())
+print("######################")
 
 drone_rotation_speed = 40
-using_drone = False
+using_drone = True
 
-# control = Control(win_height, win_width, drone=my_drone, drone_control=using_drone)
-control = Control(win_height, win_width, drone=0, drone_control=using_drone)
+control = Control(win_height, win_width, drone=my_drone, drone_control=using_drone)
 
 # Main loop
 while cap.isOpened():
@@ -93,9 +92,7 @@ while cap.isOpened():
 
     # Send the signal to the arrows and drone
     control.send_arrow_signal()
-    # Display the image
-    #cv2.imshow('Hand Keypoints', image)
-    cv2.waitKey(1)
+
     # Draw the arrows
     window.fill(dark_gray)
     control.draw(window)
